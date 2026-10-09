@@ -1,0 +1,126 @@
+@echo off
+setlocal enabledelayedexpansion
+title MyPaperHub Installer
+color 0B
+
+echo ============================================
+echo   MyPaperHub Installer
+echo ============================================
+echo.
+
+set "INSTALL_DIR=%LOCALAPPDATA%\MyPaperHub"
+set "OLLAMA_URL=http://localhost:11434"
+set "CHAT_MODEL=llama3.2:1b"
+set "RAG_MODEL=llama3.2:3b"
+
+REM ---------- 1. Copy app files ----------
+echo [1/5] Installing MyPaperHub...
+if exist "%INSTALL_DIR%" (
+    echo     Removing previous installation...
+    rmdir /S /Q "%INSTALL_DIR%"
+)
+mkdir "%INSTALL_DIR%"
+xcopy /E /I /Y /Q "%~dp0app\*" "%INSTALL_DIR%\" >nul
+if errorlevel 1 (
+    echo     ERROR: Failed to copy app files.
+    pause
+    exit /b 1
+)
+echo     Done.
+
+
+REM ---------- 2. Check for Ollama ----------
+echo.
+echo [2/5] Checking for Ollama...
+where ollama >nul 2>&1
+if %errorlevel% equ 0 (
+    echo     Ollama already installed.
+    goto :pull_models
+)
+
+REM Download the installer if it's not already present
+if not exist "%~dp0OllamaSetup.exe" (
+    echo     Downloading Ollama installer (~700 MB)...
+    echo     This may take a few minutes depending on your connection.
+    curl -L -o "%~dp0OllamaSetup.exe" "https://ollama.com/download/OllamaSetup.exe"
+    if errorlevel 1 (
+        echo     ERROR: Failed to download Ollama.
+        echo     Download manually from https://ollama.com/download
+        pause
+        exit /b 1
+    )
+)
+
+echo     Installing Ollama silently (this may take 1-2 minutes)...
+"%~dp0OllamaSetup.exe" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+if errorlevel 1 (
+    echo     ERROR: Ollama install failed.
+    pause
+    exit /b 1
+)
+echo     Ollama installed.
+
+set "PATH=%PATH%;%LOCALAPPDATA%\Programs\Ollama"
+REM ---------- 3. Wait for Ollama ----------
+echo.
+echo [3/5] Waiting for Ollama to start...
+set /a tries=0
+:wait_loop
+set /a tries+=1
+curl -s -o nul %OLLAMA_URL%/api/tags
+if %errorlevel% equ 0 goto :pull_models
+if %tries% geq 30 (
+    echo     WARNING: Ollama not responding. Skipping model pull.
+    echo     You can pull models manually later with:
+    echo         ollama pull %CHAT_MODEL%
+    echo         ollama pull %RAG_MODEL%
+    goto :shortcut
+)
+timeout /t 2 /nobreak >nul
+goto :wait_loop
+
+REM ---------- 4. Pull models ----------
+:pull_models
+echo.
+echo [4/5] Checking AI models...
+ollama list | findstr /C:"%CHAT_MODEL%" >nul
+if errorlevel 1 (
+    echo     Pulling %CHAT_MODEL% ^(~1.3 GB^)...
+    ollama pull %CHAT_MODEL%
+) else (
+    echo     %CHAT_MODEL% already present.
+)
+
+ollama list | findstr /C:"%RAG_MODEL%" >nul
+if errorlevel 1 (
+    echo     Pulling %RAG_MODEL% ^(~2.0 GB^)...
+    ollama pull %RAG_MODEL%
+) else (
+    echo     %RAG_MODEL% already present.
+)
+
+REM ---------- 5. Desktop shortcut ----------
+:shortcut
+echo.
+echo [5/5] Creating desktop shortcut...
+powershell -NoProfile -Command "$s = (New-Object -COM WScript.Shell).CreateShortcut([Environment]::GetFolderPath('Desktop') + '\MyPaperHub.lnk'); $s.TargetPath = '%INSTALL_DIR%\research_paper_organiser_with_ai_integration.exe'; $s.WorkingDirectory = '%INSTALL_DIR%'; $s.Save()"
+
+echo.
+echo ============================================
+echo   Installation complete!
+echo ============================================
+echo.
+echo   App:      %INSTALL_DIR%
+echo   Shortcut: Desktop\MyPaperHub
+echo.
+echo   Ollama runs in the background. If the
+echo   AI tab shows "not reachable", open a
+echo   terminal and run: ollama serve
+echo.
+
+choice /C YN /M "Launch MyPaperHub now"
+if errorlevel 2 goto :end
+start "" "%INSTALL_DIR%\research_paper_organiser_with_ai_integration.exe"
+
+:end
+endlocal

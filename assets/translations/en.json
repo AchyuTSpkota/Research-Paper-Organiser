@@ -1,0 +1,15 @@
+{
+  "app_title": "MyPaperHub",
+  "search_hint": "Search by title, author, DOI, keyword, or year",
+  "no_results": "No local papers found",
+  "no_abstract": "No abstract available",
+  "view_pdf": "View PDF",
+  "library_management": "Library Management",
+  "ai_assistant": "AI Assistant",
+  "disclaimer_title": "Disclaimer",
+  "disclaimer_body": "This app is for accessing papers you own or have permission to use. You are responsible for ensuring you have the right to add any PDFs.",
+  "add_pdf": "Add PDF",
+  "importing": "Importing...",
+  "search": "Search",
+  "recent_papers": "Recent Papers"
+}

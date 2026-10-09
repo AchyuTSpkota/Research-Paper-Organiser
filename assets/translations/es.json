@@ -1,0 +1,15 @@
+{
+  "app_title": "MyPaperHub",
+  "search_hint": "Buscar por título, autor, DOI, palabra clave o año",
+  "no_results": "No se encontraron artículos locales",
+  "no_abstract": "Sin resumen disponible",
+  "view_pdf": "Ver PDF",
+  "library_management": "Gestión de biblioteca",
+  "ai_assistant": "Asistente de IA",
+  "disclaimer_title": "Aviso legal",
+  "disclaimer_body": "Esta aplicación es para acceder a artículos que usted posee o para los que tiene permiso. Usted es responsable de asegurarse de que tiene derecho a agregar cualquier PDF.",
+  "add_pdf": "Agregar PDF",
+  "importing": "Importando...",
+  "search": "Buscar",
+  "recent_papers": "Artículos recientes"
+}
